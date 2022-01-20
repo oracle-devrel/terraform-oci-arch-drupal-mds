@@ -1,0 +1,299 @@
+title: "Drupal on OCI with MDS"
+description: "Drupal on OCI with MySQL Database Service"
+schemaVersion: 1.7.0
+version: "20210905"
+locale: "en"
+
+
+variableGroups:
+  - title: "General Configuration"
+    visible: false
+    variables:
+      - tenancy_ocid
+      - compartment_ocid
+      - region
+      - ssh_authorized_keys_path
+      - ssh_private_key_path
+      - private_key_path
+
+  - title: Required Variables
+    visible: true
+    variables:
+      - admin_username
+      - admin_password
+      - mds_instance_name
+      - dp_instance_name
+      - dp_name
+      - dp_password
+      - dp_schema
+
+  - title: Use HA for MDS
+    visibale: true
+    variables:
+      - deploy_mds_ha        
+
+  - title: Webservers
+    visible: true
+    variables:
+     - use_multiple_webservers
+     - nb_of_webserver
+     - dedicated
+     - use_AD
+
+  - title: Shapes
+    visible: true
+    variables:
+      - node_shape
+      - node_flex_shape_ocpus
+      - node_flex_shape_memory
+      - mysql_shape
+
+  - title: Network
+    visible: true
+    variables:
+      - vcn
+      - vcn_cidr
+
+  - title: Use Existing Intrastructure
+    visible: true
+    variables:
+      - useExistingInfra
+      - existing_vcn_ocid
+      - existing_internet_gateway_ocid
+      - existing_nat_gateway_ocid
+      - existing_public_route_table_ocid
+      - existing_private_route_table_ocid
+      - existing_public_security_list_ocid
+      - existing_public_security_list_http_ocid
+      - existing_private_security_list_ocid
+      - existing_public_subnet_ocid
+      - existing_private_subnet_ocid
+      - existing_mds_instance_ocid
+
+variables:
+  region:
+    type: oci:identity:region:name
+    visible: false
+    required: true
+    title: ${Messages.solutionsHub.genericVariables.region.title()}
+    description: ${Messages.solutionsHub.genericVariables.region.description()}
+
+  useExistingInfra:
+    title: Use Existing Infrastructure Resources
+    type: boolean
+    default: false
+
+
+  use_multiple_webservers:
+    title: Deploy multiple webservers
+    type: boolean
+    default: false
+  nb_of_webserver:
+    title: Number of Webservers to deploy
+    type: integer
+    default: 1
+    visible: ${use_multiple_webservers}
+  use_AD:
+    title: Deploy on different Availability Domains
+    type: boolean
+    default: false
+    visible: ${use_multiple_webservers}
+  dedicated:
+    title: Does each Webserver need their own user and schema ? (if so the number will be used as suffix)
+    type: boolean
+    default: false
+    visible: ${use_multiple_webservers}
+
+  node_shape:
+    type: oci:core:instanceshape:name
+    title: "Select a shape for the Drupal Compute Instance"
+    dependsOn:
+      compartmentId: compartment_ocid
+
+  node_flex_shape_memory:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 6
+    title: "Flex Shape Memory (GB)"
+    description: "Choose number GB for Flex Shape Memory."
+    visible:
+      and:
+        - or:
+          - eq:
+            - node_shape
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - node_shape
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - node_shape
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - node_shape
+            - "VM.Optimized3.Flex"
+
+  node_flex_shape_ocpus:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 1
+    title: "Flex Shape OCPUs"
+    description: "Choose number of OCPUs for Flex Shape."
+    visible:
+      and:
+        - or:
+          - eq:
+            - node_shape
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - node_shape
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - node_shape
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - node_shape
+            - "VM.Optimized3.Flex"
+
+  existing_vcn_ocid:
+    type: oci:core:vcn:id
+    visible: ${useExistingInfra}
+    title: VNC OCID
+    description: OCID of existing VCN to use
+    dependsOn:
+      compartmentId: compartment_ocid
+  existing_internet_gateway_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: Internet Gateway OCID
+    description: OCID of existing Internet Gateway to use
+  existing_nat_gateway_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: NAT Gateway OCID
+    description: OCID of existing NAT Gateway to use
+  existing_public_route_table_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: Public Routing Table OCID
+    description: OCID of existing Public Routing Table to use
+  existing_private_route_table_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: Private Routing Table OCID
+    description: OCID of existing Private Routing Table to use
+  existing_public_security_list_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: Public Security List OCID
+    description: OCID of existing Public Security List (ssh access) to use
+  existing_public_security_list_http_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: HTTP Public Security List OCID
+    description: OCID of existing HTTP Public Security List to use
+  existing_private_security_list_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: Private Security List OCID
+    description: OCID of existing Private Security List allowing MySQL traffic to use
+  existing_public_subnet_ocid:
+    type: oci:core:subnet:id
+    dependsOn:
+      compartmentId: compartment_ocid
+      vcnId: existing_vcn_ocid
+    visible: ${useExistingInfra}
+    title: Public Subnet OCID
+    description: OCID of existing Public Subnet to use
+  existing_private_subnet_ocid:
+    type: oci:core:subnet:id
+    dependsOn:
+      compartmentId: compartment_ocid
+      vcnId: existing_vcn_ocid
+    visible: ${useExistingInfra}
+    title: Private Subnet OCID
+    description: OCID of existing Private Subnet to use
+  existing_mds_instance_ocid:
+    type: string
+    visible: ${useExistingInfra}
+    title: MDS instance OCID
+    description: OCID of existing MySQL Instance to use
+
+  vcn:
+    type: string
+    visible: false
+    required: true
+    title: ${Messages.solutionsHub.solutions.defaultVCN.variables.vcn_display_name.title()}
+    description: ${Messages.solutionsHub.solutions.defaultVCN.variables.vcn_display_name.description()}
+
+  vcn_cidr:
+    type: string
+    visible: false
+    required: false
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: ${Messages.solutionsHub.solutions.defaultVCN.variables.vcn_cidr.title()}
+    description: ${Messages.solutionsHub.solutions.defaultVCN.variables.vcn_cidr.description()}
+
+  compartment_ocid:
+    type: oci:identity:compartment:id
+    required: true
+    title: Compartment
+    description: Compartment where you want to create the solution resources
+
+  admin_username:
+    type: string
+    required: true
+    title: MDS Admin Username
+    description: MySQL Database Service's admin username
+    minLength: 1
+    maxLength: 14
+    pattern: "^[a-zA-Z][a-zA-Z0-9]+$"
+
+  admin_password:
+    type: password
+    required: true
+    title: MDS Admin User's Password
+    description: Password for MySQL Database Service's admin user
+    pattern: "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\\\"\\\\|,.<>\\/?]).{8,32}$"
+
+  deploy_mds_ha:
+    title: Deploy High Availability for MDS
+    type: boolean
+    default: fals
+
+  dp_password:
+    type: password
+    required: true
+    title: MySQL Drupal User's Password
+    description: MySQL Password for Drupal User
+    pattern: "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\\\"\\\\|,.<>\\/?]).{8,32}$"
+
+  mds_instance_name:
+    type: string
+    required: true
+    title: MySQL Database Service Instance's name
+
+  dp_instance_name:
+    type: string
+    required: true
+    title: Drupal Compute Instance's name
+
+  dp_name:
+    type: string
+    required: true
+    title: MySQL Drupal Username
+    description: MySQL Username for Drupal
+    minLength: 2
+    maxLength: 14
+    pattern: "^[a-zA-Z][a-zA-Z0-9]+$"
+
+  dp_schema:
+    type: string
+    required: true
+    title: MySQL Drupal Schema
+    description: MySQL Schema/Database for Drupal

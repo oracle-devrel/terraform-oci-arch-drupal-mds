@@ -229,8 +229,7 @@ resource "oci_core_subnet" "private" {
 }
 
 module "mds-instance" {
-    #source = "github.com/nugoncal/terraform-oci-cloudbricks-mysql-database"
-    source = "../terraform-oci-cloudbricks-mysql-database"
+    source = "github.com/oracle-devrel/terraform-oci-cloudbricks-mysql-database"
     tenancy_ocid                                    = var.tenancy_ocid
     user_ocid                                       = var.user_ocid
     fingerprint                                     = var.fingerprint

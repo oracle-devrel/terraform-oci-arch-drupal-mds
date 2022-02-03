@@ -250,7 +250,6 @@ module "mds-instance" {
     mysql_db_system_hostname_label                  = var.mysql_db_system_hostname_label
     mysql_db_system_is_highly_available             = var.deploy_mds_ha
     mysql_db_system_maintenance_window_start_time   = var.mysql_db_system_maintenance_window_start_time
-
 }
 
 module "drupal" {

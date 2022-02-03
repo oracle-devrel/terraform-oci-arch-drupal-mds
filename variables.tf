@@ -107,7 +107,11 @@ variable "node_image_id" {
 
 variable "node_shape" {
   description = "Instance shape to use for master instance. "
- default     = "VM.Standard.E2.1"
+  default     = "VM.Standard.E4.Flex"
+}
+
+variable "mysql_shape" {
+  default = "MySQL.VM.Standard.E3.1.8GB"
 }
 
 variable "label_prefix" {
@@ -127,10 +131,6 @@ variable "admin_username" {
 variable "ssh_authorized_keys_path" {
   description = "Public SSH keys path to be included in the ~/.ssh/authorized_keys file for the default user on the instance. DO NOT FILL WHEN USING REOSURCE MANAGER STACK!"
   default     = ""
-}
-
-variable "mysql_shape" {
-    default = "VM.Standard.E2.1"
 }
 
 variable "dp_name" {

@@ -15,6 +15,13 @@ variableGroups:
       - ssh_authorized_keys_path
       - ssh_private_key_path
       - private_key_path
+      - label_prefix
+      - node_image_id
+      - dns_label
+      - mysql_db_system_maintenance_window_start_time
+      - mysql_db_system_hostname_label
+      - mysql_db_system_fault_domain
+      - release
 
   - title: Required Variables
     visible: true
@@ -22,13 +29,15 @@ variableGroups:
       - admin_username
       - admin_password
       - mds_instance_name
+      - mysql_db_system_display_name
+      - mysql_db_system_description
       - dp_instance_name
       - dp_name
       - dp_password
       - dp_schema
 
   - title: Use HA for MDS
-    visibale: true
+    visible: true
     variables:
       - deploy_mds_ha        
 
@@ -47,6 +56,7 @@ variableGroups:
       - node_flex_shape_ocpus
       - node_flex_shape_memory
       - mysql_shape
+      - mysql_db_system_data_storage_size_in_gb
 
   - title: Network
     visible: true
@@ -54,7 +64,7 @@ variableGroups:
       - vcn
       - vcn_cidr
 
-  - title: Use Existing Intrastructure
+  - title: Use Existing Infrastructure
     visible: true
     variables:
       - useExistingInfra
@@ -83,7 +93,6 @@ variables:
     type: boolean
     default: false
 
-
   use_multiple_webservers:
     title: Deploy multiple webservers
     type: boolean
@@ -99,7 +108,7 @@ variables:
     default: false
     visible: ${use_multiple_webservers}
   dedicated:
-    title: Does each Webserver need their own user and schema ? (if so the number will be used as suffix)
+    title: Does each Webserver need their own user and schema? (if so, the number will be used as suffix)
     type: boolean
     default: false
     visible: ${use_multiple_webservers}
@@ -107,6 +116,7 @@ variables:
   node_shape:
     type: oci:core:instanceshape:name
     title: "Select a shape for the Drupal Compute Instance"
+    default: "VM.Standard.E4.Flex"
     dependsOn:
       compartmentId: compartment_ocid
 
@@ -118,7 +128,7 @@ variables:
     multipleOf: 1
     default: 6
     title: "Flex Shape Memory (GB)"
-    description: "Choose number GB for Flex Shape Memory."
+    description: "Choose number of GB for Flex Shape Memory."
     visible:
       and:
         - or:
@@ -159,6 +169,18 @@ variables:
           - eq:
             - node_shape
             - "VM.Optimized3.Flex"
+
+  mysql_shape:
+    type: oci:core:instanceshape:name
+    title: "Select a shape for the MySQL Database System"
+    default: "MySQL.VM.Standard.E3.1.8GB"
+    dependsOn:
+      compartmentId: compartment_ocid
+
+  mysql_db_system_data_storage_size_in_gb:
+    type: number
+    title: "MySQL Data Storage Size in GB"
+    default: "50"
 
   existing_vcn_ocid:
     type: oci:core:vcn:id
@@ -249,7 +271,7 @@ variables:
     type: string
     required: true
     title: MDS Admin Username
-    description: MySQL Database Service's admin username
+    description: MySQL Database Service admin username
     minLength: 1
     maxLength: 14
     pattern: "^[a-zA-Z][a-zA-Z0-9]+$"
@@ -257,31 +279,41 @@ variables:
   admin_password:
     type: password
     required: true
-    title: MDS Admin User's Password
-    description: Password for MySQL Database Service's admin user
+    title: MDS Admin User Password
+    description: Password for MySQL Database Service admin user
     pattern: "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\\\"\\\\|,.<>\\/?]).{8,32}$"
 
   deploy_mds_ha:
     title: Deploy High Availability for MDS
     type: boolean
-    default: fals
+    default: false
 
   dp_password:
     type: password
     required: true
-    title: MySQL Drupal User's Password
+    title: MySQL Drupal User Password
     description: MySQL Password for Drupal User
     pattern: "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\\\"\\\\|,.<>\\/?]).{8,32}$"
 
   mds_instance_name:
     type: string
     required: true
-    title: MySQL Database Service Instance's name
+    title: MySQL Database Service Instance name
+
+  mysql_db_system_display_name:
+    type: string
+    required: true
+    title: MySQL Database Service display name
+  
+  mysql_db_system_description:
+    type: string
+    required: true
+    title: MySQL Database Service description 
 
   dp_instance_name:
     type: string
     required: true
-    title: Drupal Compute Instance's name
+    title: Drupal Compute Instance name
 
   dp_name:
     type: string

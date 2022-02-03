@@ -1,5 +1,5 @@
 variable "mysql_version" {
-  description = "The version of the Mysql Shell."
+  description = "The version of the MySQL Shell."
   default     = "8.0.26"
 }
 
@@ -24,7 +24,7 @@ variable "subnet_id" {
 
 variable "shape" {
   description = "Instance shape to use for master instance. "
-  default     = "VM.Standard2.1"
+  default     = "VM.Standard.E4.Flex"
 }
 
 variable "label_prefix" {
@@ -73,7 +73,6 @@ variable "admin_username" {
     description = "Username od the MDS admin account"
 }
 
-
 variable "admin_password" {
     description = "Password for the admin user for MDS"
 }
@@ -105,7 +104,7 @@ variable "flex_shape_ocpus" {
 }
 
 variable "flex_shape_memory" {
-  description = "Flex Instance shape Memory (GB)"
+  description = "Flex Instance shape Memory (Gb)"
   default = 6
 }
 

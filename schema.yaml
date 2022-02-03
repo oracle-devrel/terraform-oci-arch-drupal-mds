@@ -116,7 +116,6 @@ variables:
   node_shape:
     type: oci:core:instanceshape:name
     title: "Select a shape for the Drupal Compute Instance"
-    default: "VM.Standard.E4.Flex"
     dependsOn:
       compartmentId: compartment_ocid
 
@@ -173,7 +172,6 @@ variables:
   mysql_shape:
     type: string
     title: "Select a shape for the MySQL Database System"
-    default: "MySQL.VM.Standard.E3.1.8GB"
     dependsOn:
       compartmentId: compartment_ocid
 

@@ -2,7 +2,7 @@
 
 ## Reference Architecture
 
-For details of the architecture, see [_Deploy a Drupal CMS connected to a MySQL database in the cloud_](https://docs.oracle.com/en/solutions/drupal-with-mysql-dbs/index.html)
+COMING SOON
 
 ## Architecture Diagram
 

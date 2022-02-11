@@ -2,9 +2,15 @@
 
 ## Reference Architecture
 
-COMING SOON
+Drupal is one of the most popular content management systems (CMS) available. It is free and open-source, released under the GNU Public License. 
 
-## Architecture Diagram
+Drupal is based on the LAMP stack and provides users and enterprises a scalable and robust architecture, low implementation and maintenance efforts, as well as a large community-led knowledge base. Its setup and usage does not require advanced technical skills. It provides the infrastructure for websites worldwide—ranging from personal blogs to corporate, political, and government sites. It is very extensible and modular, making it useful in a large variety of scenarios.
+
+This Terraform code spins up one or more Oracle Cloud Infrastructure (OCI) instances after creating the required OCI networking components, deploys Drupal on the instance(s) and creates a MySQL Database System (with High Availability if desired).
+
+For more details on the architecture, see [_Deploy Drupal CMS on Oracle Linux with MySQL Database Service_](https://docs.oracle.com/en/solutions/drupal-with-mds/)
+
+## Architecture Diagram (Single-node version)
 
 ![](./images/architecture-deploy-drupal-mds.png)
 

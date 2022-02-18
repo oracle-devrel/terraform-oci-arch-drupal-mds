@@ -1,86 +1,120 @@
-title: "Drupal on OCI with MDS"
-description: "Drupal on OCI with MySQL Database Service"
-schemaVersion: 1.7.0
-version: "20210905"
-locale: "en"
+## Copyright (c) 2022, Oracle and/or its affiliates. 
+## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
+title: "Deploy Drupal on OCI with MDS"
+stackDescription: "Deploy Drupal on OCI with MySQL Database Service (including multinode scenario)"
+schemaVersion: 1.2.0
+version: "20201104"
+locale: "en"
 
 variableGroups:
   - title: "General Configuration"
     visible: false
     variables:
       - tenancy_ocid
-      - compartment_ocid
       - region
       - ssh_authorized_keys_path
       - ssh_private_key_path
       - private_key_path
-      - label_prefix
+      - release
       - node_image_id
-      - dns_label
+      - label_prefix
+      - mysql_db_system_display_name
+      - mysql_db_system_description
       - mysql_db_system_maintenance_window_start_time
       - mysql_db_system_hostname_label
       - mysql_db_system_fault_domain
-      - release
 
   - title: Required Variables
     visible: true
     variables:
-      - admin_username
+      - compartment_ocid
+      - availability_domain_name
       - admin_password
-      - mds_instance_name
-      - mysql_db_system_display_name
-      - mysql_db_system_description
-      - dp_instance_name
-      - dp_name
-      - dp_password
-      - dp_schema
+      - numberOfNodes
+      - drupal_password
+      - show_advanced
 
-  - title: Use HA for MDS
-    visible: true
-    variables:
-      - deploy_mds_ha        
-
-  - title: Webservers
-    visible: true
-    variables:
-     - use_multiple_webservers
-     - nb_of_webserver
-     - dedicated
-     - use_AD
-
-  - title: Shapes
-    visible: true
-    variables:
-      - node_shape
-      - node_flex_shape_ocpus
-      - node_flex_shape_memory
-      - mysql_shape
-      - mysql_db_system_data_storage_size_in_gb
-
-  - title: Network
-    visible: true
+  - title: Network Optional Configuration
+    visible: 
+        and:
+          - show_advanced
     variables:
       - vcn
       - vcn_cidr
 
-  - title: Use Existing Infrastructure
-    visible: true
+  - title: Load Balancer Configuration
+    visible: 
+        and:
+          - show_advanced
     variables:
-      - useExistingInfra
-      - existing_vcn_ocid
-      - existing_internet_gateway_ocid
-      - existing_nat_gateway_ocid
-      - existing_public_route_table_ocid
-      - existing_private_route_table_ocid
-      - existing_public_security_list_ocid
-      - existing_public_security_list_http_ocid
-      - existing_private_security_list_ocid
-      - existing_public_subnet_ocid
-      - existing_private_subnet_ocid
-      - existing_mds_instance_ocid
+      - lb_shape 
+      - flex_lb_min_shape
+      - flex_lb_max_shape 
+
+  - title: File Storage Service Optional Configuration
+    visible: 
+        and:
+          - show_advanced
+    variables:
+      - use_shared_storage
+
+  - title: Bastion Configuration
+    visible: 
+        and:
+          - show_advanced
+    variables:
+      - use_bastion_service
+      - bastion_shape
+      - bastion_flex_shape_ocpus
+      - bastion_flex_shape_memory
+
+  - title: Compute Optional Configuration
+    visible: 
+        and:
+          - show_advanced
+    variables:
+      - ssh_public_key
+      - node_shape
+      - instance_os
+      - linux_os_version
+      - node_flex_shape_ocpus
+      - node_flex_shape_memory  
+
+  - title: Drupal Optional Configuration
+    visible: 
+        and:
+          - show_advanced
+    variables:
+      - drupal_instance_name
+      - drupal_name
+      - drupal_schema
+
+  - title: MDS Optional Configuration
+    visible: 
+        and:
+          - show_advanced
+    variables:
+      - admin_username
+      - mysql_shape      
+      - mds_instance_name
+      - mysql_db_system_data_storage_size_in_gb
+      - mysql_is_highly_available
 
 variables:
+
+  show_advanced:
+    type: boolean
+    title: "Show advanced options?"
+    description: "Shows advanced options."
+    visible: true
+    default: false
+
+  ssh_public_key:
+    type: oci:core:ssh:publickey
+    title: "Public SSH Key"
+    description: "Choose public SSH Key to be uploaded into compute instances."
+
   region:
     type: oci:identity:region:name
     visible: false
@@ -88,30 +122,25 @@ variables:
     title: ${Messages.solutionsHub.genericVariables.region.title()}
     description: ${Messages.solutionsHub.genericVariables.region.description()}
 
-  useExistingInfra:
-    title: Use Existing Infrastructure Resources
-    type: boolean
-    default: false
+  availability_domain_name:
+    type: oci:identity:availabilitydomain:name
+    required: true
+    visibile: true
+    title: "Availability Domain to be chosen"
+    description: "Choose Availability Domain where your Drupal and MDS will be deployed."
+    dependsOn:
+      regionName: ${region}
+      compartmentId: ${compartment_ocid}
 
-  use_multiple_webservers:
-    title: Deploy multiple webservers
-    type: boolean
-    default: false
-  nb_of_webserver:
-    title: Number of Webservers to deploy
-    type: integer
-    default: 1
-    visible: ${use_multiple_webservers}
-  use_AD:
-    title: Deploy on different Availability Domains
-    type: boolean
-    default: false
-    visible: ${use_multiple_webservers}
-  dedicated:
-    title: Does each Webserver need their own user and schema? (if so, the number will be used as suffix)
-    type: boolean
-    default: false
-    visible: ${use_multiple_webservers}
+  numberOfNodes:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 2
+    title: "How many Drupal Nodes?"
+    description: "Choose number of Drupal Nodes to be deployed (more then one will create LoadBalancer)."
 
   node_shape:
     type: oci:core:instanceshape:name
@@ -127,7 +156,7 @@ variables:
     multipleOf: 1
     default: 6
     title: "Flex Shape Memory (GB)"
-    description: "Choose number of GB for Flex Shape Memory."
+    description: "Choose number GB for Flex Shape Memory."
     visible:
       and:
         - or:
@@ -169,81 +198,158 @@ variables:
             - node_shape
             - "VM.Optimized3.Flex"
 
-  mysql_shape:
-    type: string
-    title: "Select a shape for the MySQL Database System"
-    dependsOn:
-      compartmentId: compartment_ocid
+  use_bastion_service:
+    type: boolean
+    title: "Use OCI Bastion Service?"
+    description: "Check if you want to use OCI Bastion Service instead of Bastion VM."
+    default: false
+    visible:
+      and:
+        - gt:
+          - numberOfNodes
+          - 1      
+        - eq:
+          - show_advanced
+          - true  
 
-  mysql_db_system_data_storage_size_in_gb:
+  bastion_shape:
+    type: oci:core:instanceshape:name
+    required: false
+    title: "BastionVM Shape"
+    description: "A shape is a template that determines the number of CPUs, amount of memory, and other resources allocated to a newly created instance."
+    default: "VM.Standard.E4.Flex"
+    visible:
+      and:
+        - gt:
+          - numberOfNodes
+          - 1      
+        - eq:
+          - use_bastion_service
+          - false  
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+
+  bastion_flex_shape_ocpus:
     type: number
-    title: "MySQL Data Storage Size in GB"
-    default: "50"
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 1
+    title: "BastionVM Flex Shape OCPUs"
+    description: "Choose number of OCPUs for Flex Shape."
+    visible:
+      and:
+        - gt:
+          - numberOfNodes
+          - 1      
+        - eq:
+          - use_bastion_service
+          - false         
+        - or:
+          - eq:
+            - bastion_shape 
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - bastion_shape 
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - bastion_shape 
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - bastion_shape 
+            - "VM.Optimized3.Flex"
 
-  existing_vcn_ocid:
-    type: oci:core:vcn:id
-    visible: ${useExistingInfra}
-    title: VNC OCID
-    description: OCID of existing VCN to use
-    dependsOn:
-      compartmentId: compartment_ocid
-  existing_internet_gateway_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: Internet Gateway OCID
-    description: OCID of existing Internet Gateway to use
-  existing_nat_gateway_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: NAT Gateway OCID
-    description: OCID of existing NAT Gateway to use
-  existing_public_route_table_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: Public Routing Table OCID
-    description: OCID of existing Public Routing Table to use
-  existing_private_route_table_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: Private Routing Table OCID
-    description: OCID of existing Private Routing Table to use
-  existing_public_security_list_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: Public Security List OCID
-    description: OCID of existing Public Security List (ssh access) to use
-  existing_public_security_list_http_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: HTTP Public Security List OCID
-    description: OCID of existing HTTP Public Security List to use
-  existing_private_security_list_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: Private Security List OCID
-    description: OCID of existing Private Security List allowing MySQL traffic to use
-  existing_public_subnet_ocid:
-    type: oci:core:subnet:id
-    dependsOn:
-      compartmentId: compartment_ocid
-      vcnId: existing_vcn_ocid
-    visible: ${useExistingInfra}
-    title: Public Subnet OCID
-    description: OCID of existing Public Subnet to use
-  existing_private_subnet_ocid:
-    type: oci:core:subnet:id
-    dependsOn:
-      compartmentId: compartment_ocid
-      vcnId: existing_vcn_ocid
-    visible: ${useExistingInfra}
-    title: Private Subnet OCID
-    description: OCID of existing Private Subnet to use
-  existing_mds_instance_ocid:
-    type: string
-    visible: ${useExistingInfra}
-    title: MDS instance OCID
-    description: OCID of existing MySQL Instance to use
+  bastion_flex_shape_memory:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 1
+    title: "BastionVM Flex Shape Memory (GB)"
+    description: "Choose number GB for Flex Shape Memory."
+    visible:
+      and:
+        - gt:
+          - numberOfNodes
+          - 1      
+        - eq:
+          - use_bastion_service
+          - false         
+        - or:
+          - eq:
+            - bastion_shape 
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - bastion_shape 
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - bastion_shape 
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - bastion_shape 
+            - "VM.Optimized3.Flex"
 
+  lb_shape:
+    type: enum
+    title: "LoadBalancer Shape"
+    description: "Choose LoadBalancer Shape"
+    default: "flexible"
+    required: false 
+    enum:
+      - "flexible"
+      - "100Mbps"
+      - "10Mbps"
+      - "10Mbps-Micro"
+      - "400Mbps"
+      - "8000Mbps"
+    visible: 
+      gt:
+        - numberOfNodes
+        - 1
+
+  flex_lb_min_shape:
+    type: enum
+    required: false
+    default: "10"
+    title: "LB Flex Min Shape"
+    description: "Choose Minimum Shape for Flex Load Balancer."
+    enum:
+      - "10"
+      - "100"
+      - "1000"
+      - "400"
+      - "8000"
+    visible:
+      and:
+        - eq:
+          - lb_shape 
+          - "flexible"
+        - gt:
+          - numberOfNodes
+          - 1
+
+  flex_lb_max_shape:
+    type: enum
+    required: false
+    default: "100"
+    title: "LB Flex Max Shape"
+    description: "Choose Maximum Shape for Flex Load Balancer."
+    enum:
+      - "10"
+      - "100"
+      - "1000"
+      - "400"
+      - "8000"
+    visible:
+      and:
+        - eq:
+          - lb_shape 
+          - "flexible"
+        - gt:
+          - numberOfNodes
+          - 1
   vcn:
     type: string
     visible: false
@@ -269,7 +375,7 @@ variables:
     type: string
     required: true
     title: MDS Admin Username
-    description: MySQL Database Service admin username
+    description: MySQL Database Service's admin username
     minLength: 1
     maxLength: 14
     pattern: "^[a-zA-Z][a-zA-Z0-9]+$"
@@ -277,43 +383,33 @@ variables:
   admin_password:
     type: password
     required: true
-    title: MDS Admin User Password
-    description: Password for MySQL Database Service admin user
+    title: MDS Admin User's Password
+    description: Password for MySQL Database Service's admin user
     pattern: "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\\\"\\\\|,.<>\\/?]).{8,32}$"
 
-  deploy_mds_ha:
-    title: Deploy High Availability for MDS
+  mysql_is_highly_available:
+    title: "Deploy High Availability for MDS"
     type: boolean
     default: false
 
-  dp_password:
+  drupal_password:
     type: password
     required: true
-    title: MySQL Drupal User Password
+    title: MySQL Drupal User's Password
     description: MySQL Password for Drupal User
     pattern: "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\\\"\\\\|,.<>\\/?]).{8,32}$"
 
   mds_instance_name:
     type: string
     required: true
-    title: MySQL Database Service Instance name
+    title: MDS Instance's name
 
-  mysql_db_system_display_name:
+  drupal_instance_name:
     type: string
     required: true
-    title: MySQL Database Service display name
-  
-  mysql_db_system_description:
-    type: string
-    required: true
-    title: MySQL Database Service description 
+    title: Drupal Compute Instance's name
 
-  dp_instance_name:
-    type: string
-    required: true
-    title: Drupal Compute Instance name
-
-  dp_name:
+  drupal_name:
     type: string
     required: true
     title: MySQL Drupal Username
@@ -322,8 +418,77 @@ variables:
     maxLength: 14
     pattern: "^[a-zA-Z][a-zA-Z0-9]+$"
 
-  dp_schema:
+  drupal_schema:
     type: string
     required: true
     title: MySQL Drupal Schema
     description: MySQL Schema/Database for Drupal
+
+  use_shared_storage:
+    type: boolean
+    visible:
+      gt:
+        - numberOfNodes
+        - 1
+    default: true
+    required: false
+    title: "Use OCI File Storage Service"
+    description: "Check the box to use OCI FSS for Drupal multinode setup (shared Drupal directory)."
+
+  mysql_shape:
+    type: enum
+    required: false
+    default: "MySQL.VM.Standard.E3.1.8GB"
+    title: "MDS Shape"
+    description: "Choose MySQL Database System Shape for your MDS deployments."
+    enum:
+      - "VM.Standard.E2.1"
+      - "VM.Standard.E2.2"
+      - "VM.Standard.E2.4"  
+      - "VM.Standard.E2.8"
+      - "MySQL.VM.Standard.E3.1.8GB"
+      - "MySQL.VM.Standard.E3.1.16GB"      
+      - "MySQL.VM.Standard.E3.2.32GB"
+      - "MySQL.VM.Standard.E3.4.64GB"
+      - "MySQL.VM.Standard.E3.8.128GB"
+      - "MySQL.VM.Standard.E3.16.256GB"
+      - "MySQL.VM.Standard.E3.24.384GB"
+      - "MySQL.VM.Standard.E3.32.512GB"
+      - "MySQL.VM.Standard.E3.48.768GB"    
+      - "MySQL.VM.Standard.E3.64.1024GB"  
+      - "MySQL.HeatWave.VM.Standard.E3" 
+
+  mysql_db_system_display_name:
+    type: string
+    required: true
+    title: MySQL Database Service display name
+  
+  mysql_db_system_data_storage_size_in_gb:
+    type: number
+    title: "MySQL Data Storage Size in GB"
+    default: "50"
+
+  mysql_db_system_description:
+    type: string
+    required: true
+    title: MySQL Database Service description 
+
+  linux_os_version:
+    type: enum
+    required: false
+    visible: false
+    title: "Instance OS version"
+    description: "An Operating System version that determines the operating system version for WordPress host."
+    default: "8"
+    enum:
+      - "8"
+
+  instance_os:
+    type: enum
+    required: false
+    visible: false
+    title: "Instance OS"
+    description: "An Operating System that determines the operating system for WordPress host."
+    default: "Oracle Linux"
+    enum:
+      - "Oracle Linux"

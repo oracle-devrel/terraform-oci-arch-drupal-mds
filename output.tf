@@ -1,25 +1,28 @@
-output "drupal_public_ip" {
-  value = module.drupal.public_ip
+## Copyright (c) 2022 Oracle and/or its affiliates.
+## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
+
+output "drupal_home_URL" {
+  value = "http://${module.drupal.public_ip[0]}/"
 }
 
-output "drupal_db_user" {
-  value = module.drupal.drupal_user_name
+output "generated_ssh_private_key" {
+  value     = module.drupal.generated_ssh_private_key
+  sensitive = true
 }
 
-output "drupal_schema" {
-  value = module.drupal.drupal_schema_name
+output "drupal_name" {
+  value = var.drupal_name
 }
 
-output "drupal_db_password" {
-  value = var.dp_password
+output "drupal_password" {
+  value = var.drupal_password
+}
+
+output "drupal_database" {
+  value = var.drupal_schema
 }
 
 output "mds_instance_ip" {
   value = module.mds-instance.mysql_db_system.ip_address
-  sensitive = true
-}
-
-output "ssh_private_key" {
-  value = local.private_key_to_show
   sensitive = true
 }

@@ -42,10 +42,6 @@ data "oci_identity_region_subscriptions" "home_region_subscriptions" {
   }
 }
 
-data "oci_core_instances" "wordpress_instances" {
-  compartment_id = var.compartment_ocid
-}
-
 data "oci_identity_availability_domains" "ADs" {
   compartment_id = var.tenancy_ocid
 }

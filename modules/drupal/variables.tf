@@ -55,7 +55,17 @@ variable "subnet_id" {
 
 variable "shape" {
   description = "Instance shape to use for master instance. "
-  default     = "VM.Standard2.1"
+  default     = "VM.Standard.E4.Flex"
+}
+
+variable "flex_shape_ocpus" {
+  description = "Flex Instance shape OCPUs"
+  default = 1
+}
+
+variable "flex_shape_memory" {
+  description = "Flex Instance shape Memory (GB)"
+  default = 6
 }
 
 variable "lb_shape" {
@@ -85,7 +95,7 @@ variable "bastion_image_id" {
 }
 
 variable "bastion_shape" {
-  default = "VM.Standard.E3.Flex"
+  default = "VM.Standard.E4.Flex"
 }
 
 variable "bastion_flex_shape_ocpus" {
@@ -104,16 +114,6 @@ variable "use_shared_storage" {
 variable "drupal_shared_working_dir" {
   description = "Decide where to store drupal data"
   default     = "/shareddrupal"
-}
-
-variable "flex_shape_ocpus" {
-  description = "Flex Instance shape OCPUs"
-  default = 1
-}
-
-variable "flex_shape_memory" {
-  description = "Flex Instance shape Memory (GB)"
-  default = 6
 }
 
 variable "label_prefix" {

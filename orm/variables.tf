@@ -1,27 +1,26 @@
-variable "tenancy_ocid" {
-  description = "Tenancy's OCID"
+## Copyright (c) 2022 Oracle and/or its affiliates.
+## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
+
+#variable "user_ocid" {}
+#variable "fingerprint" {}
+#variable "private_key_path" {}
+
+variable "release" {
+  description = "Reference Architecture Release (OCI Architecture Center)"
+  default     = "1.1"
 }
 
-/*variable "user_ocid" {
-  description = "User's OCID"
+variable "ssh_public_key" {
   default = ""
 }
 
-variable "ssh_private_key_path" {
-  description = "The private key path to access instance. DO NOT FILL WHEN USING RESOURCE MANAGER STACK!"
-  default     = ""
+variable "availability_domain_name" {
+  default = ""
 }
 
-variable "private_key_path" {
-  description = "The private key path to pem. DO NOT FILL WHEN USING RESOURCE MANAGER STACK! "
-  default     = ""
+variable "tenancy_ocid" {
+  description = "Tenancy's OCID"
 }
-
-variable "fingerprint" {
-  description = "Key Fingerprint"
-  default     = ""
-}
-*/
 
 variable "compartment_ocid" {
   description = "Compartment's OCID where VCN will be created. "
@@ -31,74 +30,14 @@ variable "region" {
   description = "OCI Region"
 }
 
-variable "existing_vcn_ocid" {
-  description = "OCID of an existing VCN to use"
-  default     = ""
-}
-
-variable "existing_public_subnet_ocid" {
-  description = "OCID of an existing public subnet to use"
-  default     = ""
-}
-
-variable "existing_private_subnet_ocid" {
-  description = "OCID of an existing private subnet to use"
-  default     = ""
-}
-
-variable "existing_internet_gateway_ocid" {
-  description = "OCID of an existing internet gateway to use"
-  default     = ""
-}
-
-variable "existing_nat_gateway_ocid" {
-  description = "OCID of an existing NAT gateway to use"
-  default     = ""
-}
-
-variable "existing_public_route_table_ocid" {
-  description = "OCID of an existing public route table to use"
-  default     = ""
-}
-
-variable "existing_private_route_table_ocid" {
-  description = "OCID of an existing private route table to use"
-  default     = ""
-}
-
-variable "existing_public_security_list_ocid" {
-  description = "OCID of an existing public security list (ssh) to use"
-  default     = ""
-}
-
-variable "existing_public_security_list_http_ocid" {
-  description = "OCID of an existing security list allowing https and https to use"
-  default     = ""
-}
-
-variable "existing_private_security_list_ocid" {
-  description = "OCID of an existing private security list allowing MySQL access to use"
-  default     = ""
-}
-
-variable "existing_mds_instance_ocid" {
-  description = "OCID of an existing MDS instance to use"
-  default     = ""
-}
-
 variable "vcn" {
   description = "VCN Name"
-  default     = "mysql_vcn"
+  default     = "drupal_mds_vcn"
 }
 
 variable "vcn_cidr" {
   description = "VCN's CIDR IP Block"
   default     = "10.0.0.0/16"
-}
-
-variable "dns_label" {
-  description = "Allows assignment of DNS hostname when launching an Instance. "
-  default     = ""
 }
 
 variable "node_image_id" {
@@ -107,17 +46,61 @@ variable "node_image_id" {
 }
 
 variable "node_shape" {
-  description = "Instance shape to use for master instance. "
-  default     = "VM.Standard.E4.Flex"
+description = "Instance shape to use for master instance. "
+ default     = "VM.Standard.E4.Flex"
 }
 
-variable "mysql_shape" {
-  default = "MySQL.VM.Standard.E3.1.8GB"
+variable "node_flex_shape_ocpus" {
+  description = "Flex Instance shape OCPUs"
+  default = 1
+}
+
+variable "node_flex_shape_memory" {
+  description = "Flex Instance shape Memory (GB)"
+  default = 6
 }
 
 variable "label_prefix" {
   description = "To create unique identifier for multiple setup in a compartment."
   default     = ""
+}
+
+variable "lb_shape" {
+  default = "flexible"
+}
+
+variable "flex_lb_min_shape" {
+  default = "10"
+}
+
+variable "flex_lb_max_shape" {
+  default = "100"
+}
+
+variable "use_bastion_service" {
+  default = false
+}
+
+variable "bastion_shape" {
+  default = "VM.Standard.E3.Flex"
+}
+
+variable "bastion_flex_shape_ocpus" {
+  default = 1
+}
+
+variable "bastion_flex_shape_memory" {
+  default = 1
+}
+
+variable "instance_os" {
+  description = "Operating system for compute instances"
+  default     = "Oracle Linux"
+}
+
+variable "linux_os_version" {
+  description = "Operating system version for all Linux instances"
+  default     = "8"
 }
 
 variable "admin_password" {
@@ -134,62 +117,37 @@ variable "ssh_authorized_keys_path" {
   default     = ""
 }
 
-variable "dp_name" {
-  description = "Drupal Database User Name."
+variable "ssh_private_key_path" {
+  description = "The private key path to access instance. DO NOT FILL WHEN USING RESOURCE MANAGER STACK!"
+  default     = ""
+}
+
+variable "mysql_shape" {
+    default = "MySQL.VM.Standard.E3.1.8GB"
+}
+
+variable "drupal_name" {
+  description = "drupal Database User Name."
   default     = "drupal"
 }
 
-variable "dp_password" {
-  description = "Drupal Database User Password."
-  default     = "MyDrupalPassw0rd!"
+variable "drupal_password" {
+  description = "drupal Database User Password."
+  default     = ""
 }
 
-variable "dp_schema" {
-  description = "Drupal MySQL Schema"
+variable "drupal_schema" {
+  description = "drupal MySQL Schema"
   default     = "drupal"
 }
 
 variable "mds_instance_name" {
   description = "Name of the MDS instance"
-  default     = "DrupalMDS"
+  default     = "drupalMDS"
 }
 
-variable "dp_instance_name" {
-  description = "Name of the Drupal compute instance"
-  default     = "DrupalServer"
-}
-
-variable "nb_of_webserver" {
-    description = "Amount of Webservers to deploy"
-    default = 1
-}
-
-variable "use_AD" {
-  description = "Using different Availability Domain, by default use of Fault Domain"
-  type        = bool
-  default     = false
-}
-
-variable "dedicated" {
-  description = "Create a dedicated user and a dedicated database for each Webservers"
-  type        = bool
-  default     = false
-}
-
-variable "deploy_mds_ha" {
-  description = "Deploy High Availability for MDS"
-  type        = bool
-  default     = false
-}
-
-variable "node_flex_shape_ocpus" {
-  description = "Flex Instance shape OCPUs"
-  default = 1
-}
-
-variable "node_flex_shape_memory" {
-  description = "Flex Instance shape Memory (GB)"
-  default = 6
+variable "mysql_is_highly_available" {
+  default = false
 }
 
 variable "mysql_db_system_data_storage_size_in_gb" {
@@ -221,7 +179,17 @@ variable "mysql_db_system_maintenance_window_start_time" {
   default = "SUNDAY 14:30"
 }
 
-variable "release" {
-  description = "Reference Architecture Release (OCI Architecture Center)"
-  default     = "1.0"
+variable "drupal_instance_name" {
+  description = "Name of the drupal compute instance"
+  default     = "drupalvm"
+}
+
+variable "numberOfNodes" {
+    description = "Amount of Webservers to deploy"
+    default = 2
+}
+
+variable "use_shared_storage" {
+  description = "Decide if you want to use shared NFS on OCI FSS"
+  default     = true
 }

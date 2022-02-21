@@ -10,9 +10,15 @@ This Terraform code spins up one or more Oracle Cloud Infrastructure (OCI) insta
 
 For more details on the architecture, see [_Deploy Drupal CMS on Oracle Linux with MySQL Database Service_](https://docs.oracle.com/en/solutions/drupal-with-mds/)
 
-## Architecture Diagram (Single-node version)
+## Architecture Diagram 
 
-![](./images/architecture-deploy-drupal-mds.png)
+### Single-node Architecture (1 Drupal VM, single node MDS)
+
+![](./images/architecture-deploy-drupal-mds_single-node.png)
+
+### Multi-node Architecture (2+ Drupal VMs, shared FSS, Load Balancer and MDS HA)
+
+![](./images/architecture-deploy-drupal-mds_multi-node.png)
 
 ## Prerequisites
 

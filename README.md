@@ -10,9 +10,15 @@ This Terraform code spins up one or more Oracle Cloud Infrastructure (OCI) insta
 
 For more details on the architecture, see [_Deploy Drupal CMS on Oracle Linux with MySQL Database Service_](https://docs.oracle.com/en/solutions/drupal-with-mds/)
 
-## Architecture Diagram (Single-node version)
+## Architecture Diagram 
 
-![](./images/architecture-deploy-drupal-mds.png)
+### Single-node Architecture (1 Drupal VM, single node MDS)
+
+![](./images/architecture-deploy-drupal-mds_single-node.png)
+
+### Multi-node Architecture (2+ Drupal VMs, shared FSS, Load Balancer and MDS HA)
+
+![](./images/architecture-deploy-drupal-mds_multi-node.png)
 
 ## Prerequisites
 
@@ -71,14 +77,9 @@ region              = "<oci_region>"
 compartment_ocid    = "<compartment_ocid>"
 
 # MySQL and Drupal variables
-admin_username      = "<MySQL_admin_username>"
 admin_password      = "<MySQL_admin_password>"
-mds_instance_name   = "<MySQL_instance_name>"
-dp_instance_name    = "<Drupal_instance_name>"
-dp_name             = "<Drupal_user_name>"
-dp_password         = "<Drupal_user_password>"
-dp_schema           = "<Drupal_schema_name>"
-
+drupal_password     = "<Drupal_user_password>"
+numberOfNodes       = 1 # value 2+ for multinode scenario will be deployed inluding LB & FSS.
 ````
 
 ### Create the Resources
@@ -104,23 +105,19 @@ module "oci-arch-drupal-mds" {
   fingerprint                   = "<finger_print>"
   private_key_path              = "<private_key_path>"
   region                        = "<oci_region>"
-  admin_username                = "<MySQL_admin_username>"
+  compartment_ocid              = "<compartment_ocid>"
   admin_password                = "<MySQL_admin_password>"
-  mds_instance_name             = "<MySQL_instance_name>"
-  dp_instance_name              = "<Drupal_instance_name>"
-  dp_name                       = "<Drupal_user_name>"
-  dp_password                   = "<Drupal_user_password>"
-  dp_schema                     = "<Drupal_schema_name>"
+  drupal_password               = "<Drupal_user_password>"
+  numberOfNodes                 = 1 
 }
 ```
 
 ### Testing your Deployment
-After the deployment is finished, you can access and configure Drupal by picking drupal_public_ip from the output and pasting into web browser window.
+After the deployment is finished, you can access and configure Drupal by picking drupal_home_URL from the output and pasting into web browser window.
 
 ````
-drupal_public_ip = http://193.122.198.20/
+drupal_home_URL = http://193.122.198.20/
 `````
-
 
 ## Contributing
 This project is open source.  Please submit your contributions by forking this repository and submitting a pull request!  Oracle appreciates any contributions that are made by the open source community.

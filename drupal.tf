@@ -2,7 +2,7 @@
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 module "drupal" {
-  source                    = "./modules/drupal"
+  source                    = "github.com/oracle-devrel/terraform-oci-arch-drupal"
   tenancy_ocid              = var.tenancy_ocid
   vcn_id                    = oci_core_virtual_network.drupal_mds_vcn.id
   numberOfNodes             = var.numberOfNodes
